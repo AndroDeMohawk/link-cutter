@@ -1,0 +1,11 @@
+services:
+  postgres:
+    container_name: postgres_go
+    image: postgres:18
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - ./postgres-data:/var/lib/postgresql
+    ports:
+      - "4321:5432"
