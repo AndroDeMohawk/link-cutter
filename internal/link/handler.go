@@ -1,9 +1,11 @@
 package link
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
+	"github.com/AndroDeMohawk/link-cutter/configs"
 	"github.com/AndroDeMohawk/link-cutter/pkg/middleware"
 	"github.com/AndroDeMohawk/link-cutter/pkg/request"
 	"github.com/AndroDeMohawk/link-cutter/pkg/response"
@@ -16,6 +18,7 @@ type Handler struct {
 
 type HandlerDeps struct {
 	LinkRepository *Repository
+	Config         *configs.Config
 }
 
 func RegisterRoutes(router *http.ServeMux, deps HandlerDeps) {
@@ -23,7 +26,7 @@ func RegisterRoutes(router *http.ServeMux, deps HandlerDeps) {
 		LinkRepository: deps.LinkRepository,
 	}
 	router.HandleFunc("POST /link", handler.Create())
-	router.Handle("PATCH /link/{id}", middleware.IsAuth(handler.Update()))
+	router.Handle("PATCH /link/{id}", middleware.IsAuth(handler.Update(), deps.Config))
 	router.HandleFunc("DELETE /link/{id}", handler.Delete())
 	router.HandleFunc("GET /{hash}", handler.GoTo())
 }
@@ -105,6 +108,14 @@ func (h *Handler) Update() http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
+
+		email := middleware.WithEmail(req.Context())
+		if email == nil {
+			err = fmt.Errorf("Email is invalid")
+			fmt.Println(err)
+			return
+		}
+		fmt.Printf("Email: %v", email)
 		response.Send_json(w, http.StatusOK, link)
 
 	}

@@ -31,6 +31,7 @@ func main() {
 	})
 	link.RegisterRoutes(router, link.HandlerDeps{
 		LinkRepository: linkRepository,
+		Config:         conf,
 	})
 	//Middlewares
 	stack := middleware.Chain(

@@ -3,12 +3,11 @@ package auth
 import (
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/AndroDeMohawk/link-cutter/configs"
+	JWT "github.com/AndroDeMohawk/link-cutter/pkg/jwt"
 	"github.com/AndroDeMohawk/link-cutter/pkg/request"
 	"github.com/AndroDeMohawk/link-cutter/pkg/response"
-	"github.com/golang-jwt/jwt/v5"
 )
 
 type Handler struct {
@@ -42,12 +41,11 @@ func (h *Handler) Login() http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
 		}
-		tokenClaims := jwt.MapClaims{
-			"sub": email,
-			"exp": time.Now().Add(time.Hour * 24).Unix(),
-		}
-		t := jwt.NewWithClaims(jwt.SigningMethodHS256, tokenClaims)
-		token, err := t.SignedString([]byte(h.Config.Auth.Secret))
+
+		token, err := JWT.NewJWT(h.Config.Auth.Secret).Create(JWT.JWTData{
+			Email: email,
+		})
+
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
@@ -71,12 +69,9 @@ func (h *Handler) Register() http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
 		}
-		tokenClaims := jwt.MapClaims{
-			"sub": email,
-			"exp": time.Now().Add(time.Hour * 24).Unix(),
-		}
-		t := jwt.NewWithClaims(jwt.SigningMethodHS256, tokenClaims)
-		token, err := t.SignedString([]byte(h.Config.Auth.Secret))
+		token, err := JWT.NewJWT(h.Config.Auth.Secret).Create(JWT.JWTData{
+			Email: email,
+		})
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
