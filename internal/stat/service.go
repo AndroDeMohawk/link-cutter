@@ -18,8 +18,8 @@ type Service struct {
 
 func NewService(deps *ServiceDeps) *Service {
 	return &Service{
-		EventBus:   event.NewEventBus(),
-		Repository: &Repository{},
+		EventBus:   deps.EventBus,
+		Repository: deps.Repository,
 	}
 }
 

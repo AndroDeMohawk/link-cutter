@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"github.com/AndroDeMohawk/link-cutter/configs"
-	"github.com/AndroDeMohawk/link-cutter/pkg/di"
+	_ "github.com/AndroDeMohawk/link-cutter/pkg/di"
 	"github.com/AndroDeMohawk/link-cutter/pkg/event"
 	"github.com/AndroDeMohawk/link-cutter/pkg/middleware"
 	"github.com/AndroDeMohawk/link-cutter/pkg/request"
@@ -16,7 +16,6 @@ import (
 
 type Handler struct {
 	LinkRepository *Repository
-	StatRepository di.IStatRepository
 	EventBus       *event.EventBus
 }
 
@@ -36,6 +35,7 @@ func RegisterRoutes(router *http.ServeMux, deps HandlerDeps) {
 	router.HandleFunc("DELETE /link/{id}", handler.Delete())
 	router.HandleFunc("GET /{hash}", handler.GoTo())
 	router.Handle("GET /link", middleware.IsAuth(handler.GetAll(), deps.Config))
+
 }
 
 func (h *Handler) Create() http.HandlerFunc {

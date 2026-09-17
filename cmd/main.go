@@ -41,6 +41,10 @@ func main() {
 		Config:         conf,
 		EventBus:       eventBus,
 	})
+	stat.RegisterRoutes(router, stat.HandlerDeps{
+		StatRepository: statRepository,
+		Config:         conf,
+	})
 	//Middlewares
 	stack := middleware.Chain(
 		middleware.CORS,
