@@ -59,3 +59,23 @@ func (r *Repository) FindById(id uint) error {
 	}
 	return nil
 }
+
+func (r *Repository) Count() int64 {
+	var count int64
+	r.Database.Table("links").
+		Where("deleted_at is null").
+		Count(&count)
+	return count
+}
+
+func (r *Repository) GetAll(limit, offset int) []Link {
+	var links []Link
+	r.Database.
+		Table("links").
+		Where("links.deleted_at IS NULL").
+		Order("links.id ASC").
+		Limit(limit).
+		Offset(offset).
+		Scan(&links)
+	return links
+}

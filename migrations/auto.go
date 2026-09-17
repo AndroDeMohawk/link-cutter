@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/AndroDeMohawk/link-cutter/internal/link"
+	"github.com/AndroDeMohawk/link-cutter/internal/stat"
 	"github.com/AndroDeMohawk/link-cutter/internal/user"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
@@ -19,7 +20,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	err = db.AutoMigrate(&link.Link{}, &user.User{})
+	err = db.AutoMigrate(&link.Link{}, &user.User{}, &stat.Stat{})
 	if err != nil {
 		panic("Migration failed")
 	}

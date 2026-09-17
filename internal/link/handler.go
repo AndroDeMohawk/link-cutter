@@ -6,6 +6,8 @@ import (
 	"strconv"
 
 	"github.com/AndroDeMohawk/link-cutter/configs"
+	"github.com/AndroDeMohawk/link-cutter/pkg/di"
+	"github.com/AndroDeMohawk/link-cutter/pkg/event"
 	"github.com/AndroDeMohawk/link-cutter/pkg/middleware"
 	"github.com/AndroDeMohawk/link-cutter/pkg/request"
 	"github.com/AndroDeMohawk/link-cutter/pkg/response"
@@ -14,21 +16,26 @@ import (
 
 type Handler struct {
 	LinkRepository *Repository
+	StatRepository di.IStatRepository
+	EventBus       *event.EventBus
 }
 
 type HandlerDeps struct {
 	LinkRepository *Repository
 	Config         *configs.Config
+	EventBus       *event.EventBus
 }
 
 func RegisterRoutes(router *http.ServeMux, deps HandlerDeps) {
 	handler := &Handler{
 		LinkRepository: deps.LinkRepository,
+		EventBus:       deps.EventBus,
 	}
 	router.HandleFunc("POST /link", handler.Create())
 	router.Handle("PATCH /link/{id}", middleware.IsAuth(handler.Update(), deps.Config))
 	router.HandleFunc("DELETE /link/{id}", handler.Delete())
 	router.HandleFunc("GET /{hash}", handler.GoTo())
+	router.Handle("GET /link", middleware.IsAuth(handler.GetAll(), deps.Config))
 }
 
 func (h *Handler) Create() http.HandlerFunc {
@@ -77,12 +84,19 @@ func (h *Handler) Delete() http.HandlerFunc {
 }
 func (h *Handler) GoTo() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
+
 		hash := req.PathValue("hash")
 		link, err := h.LinkRepository.GetByHash(hash)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
+
+		go h.EventBus.Publish(event.Event{
+			Type: event.LinkVisited,
+			Data: link.ID,
+		})
+
 		http.Redirect(w, req, link.Url, http.StatusTemporaryRedirect)
 
 	}
@@ -117,6 +131,27 @@ func (h *Handler) Update() http.HandlerFunc {
 		}
 		fmt.Printf("Email: %v", email)
 		response.Send_json(w, http.StatusOK, link)
+
+	}
+}
+func (h *Handler) GetAll() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
+		if err != nil {
+			http.Error(w, "Invalid limit", http.StatusBadRequest)
+			return
+		}
+		offset, err := strconv.Atoi(r.URL.Query().Get("offset"))
+		if err != nil {
+			http.Error(w, "Invalid offset", http.StatusBadRequest)
+			return
+		}
+		links := h.LinkRepository.GetAll(limit, offset)
+		count := h.LinkRepository.Count()
+		response.Send_json(w, http.StatusOK, GetAllLinksResponse{
+			Links: links,
+			Count: count,
+		})
 
 	}
 }
