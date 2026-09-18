@@ -71,6 +71,9 @@ func TestRegisterHandlerSuccess(t *testing.T) {
 	mock.ExpectBegin()
 	mock.ExpectQuery("INSERT").WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
 	mock.ExpectCommit()
+	mock.ExpectQuery("SELECT").
+		WillReturnRows(sqlmock.NewRows([]string{"email", "password", "name"}).
+			AddRow("vasya@gmail.com", "$2a$10$kpesPmh7axOtLIfz8WGXxeJnJI2bJw4ZXUW0TAakMrpcpx2teEQgW", "Test_Vasya"))
 	if err != nil {
 		t.Fatalf("Unexpected error while bootstrap %v", err)
 		return
@@ -84,7 +87,7 @@ func TestRegisterHandlerSuccess(t *testing.T) {
 	w := httptest.NewRecorder()
 	req, err := http.NewRequest("POST", "/auth/register", reader)
 	handler.Register()(w, req)
-	if w.Result().StatusCode != 201 {
+	if w.Result().StatusCode != 200 {
 		t.Errorf("Expected status code 200 got %v", w.Result().StatusCode)
 	}
 
