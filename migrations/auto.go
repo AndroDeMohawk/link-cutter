@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/AndroDeMohawk/link-cutter/internal/link"
@@ -12,10 +13,11 @@ import (
 )
 
 func main() {
-	err := godotenv.Load(".env")
+	err := godotenv.Overload(".env")
 	if err != nil {
 		panic(err)
 	}
+	fmt.Println(os.Getenv("DSN"))
 	db, err := gorm.Open(postgres.Open(os.Getenv("DSN")), &gorm.Config{})
 	if err != nil {
 		panic(err)
