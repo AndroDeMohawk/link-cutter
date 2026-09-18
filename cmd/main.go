@@ -14,8 +14,7 @@ import (
 	"github.com/AndroDeMohawk/link-cutter/pkg/middleware"
 )
 
-func main() {
-	//http://localhost:8081/
+func App() http.Handler {
 	conf := configs.LoadConfig()
 	DB := db.NewDb(conf)
 	router := http.NewServeMux()
@@ -45,17 +44,21 @@ func main() {
 		StatRepository: statRepository,
 		Config:         conf,
 	})
-	//Middlewares
+	go statService.AddClick()
 	stack := middleware.Chain(
 		middleware.CORS,
 		middleware.Logging,
 	)
+	return stack(router)
+}
+
+func main() {
+	//http://localhost:8081/
+	app := App()
 	server := http.Server{
 		Addr:    ":8081",
-		Handler: stack(router),
+		Handler: app,
 	}
-
-	go statService.AddClick()
 	fmt.Println("Server is listening on 8081")
 	err := server.ListenAndServe()
 	if err != nil {
