@@ -1,4 +1,4 @@
 .env
 /var/lib/postgresql
 /cmd/.env
-./postgres-data
+./postgres-data/18/docker
